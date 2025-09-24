@@ -7,9 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+import Spinner from "@/components/ui/spinner";
+import { useAppStore } from "@/stores/app";
+
 export default function Home() {
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const { loggedIn, setLoggedIn } = useAppStore((state) => state);
 
   const handleLogin = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -17,6 +21,8 @@ export default function Home() {
     const formData = new FormData(e.target as HTMLFormElement);
 
     try {
+      setLoading(true);
+
       const response = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -36,6 +42,8 @@ export default function Home() {
     } catch (error) {
       console.error("Failed to create policy:", error);
       setError(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -44,7 +52,7 @@ export default function Home() {
       <Dashboard />
     </div>
   ) : (
-    <div className="bg-white p-5 rounded shadow max-w-sm mx-auto">
+    <div className="bg-white p-5 rounded shadow max-w-sm mx-auto mt-20">
       <h1 className="text-3xl font-bold mb-7">Welcome!</h1>
       <form className="mt-3 flex flex-col gap-3" onSubmit={handleLogin}>
         <div className="flex flex-col gap-3">
@@ -56,7 +64,16 @@ export default function Home() {
           <Input name="password" type="password" />
         </div>
         <hr className="my-1" />
-        <Button className="w-full">Log in</Button>
+        <Button className="w-full" disabled={loading}>
+          {loading ? (
+            <>
+              <Spinner />
+              Logging in
+            </>
+          ) : (
+            "Log in"
+          )}
+        </Button>
       </form>
       {error ? (
         <p className="mt-3 px-3 py-2 text-xs border border-red-600 rounded-md bg-red-50 text-red-500">

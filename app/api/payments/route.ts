@@ -1,8 +1,6 @@
 import dbConnect from "@/lib/mongodb";
 import { stripe } from "@/lib/stripe";
-import Transaction from "@/models/Transaction";
 import TransactionPolicy from "@/models/TransactionPolicy";
-import User from "@/models/User";
 import { NextResponse } from "next/server";
 
 export async function GET(request) {
@@ -27,40 +25,50 @@ export async function POST(request) {
     await dbConnect();
     const policyData = await request.json();
 
-    console.log(policyData);
-
     // Get user and validate
-    const user = await User.findById(policyData.userId);
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
+    // TODO: verify user from stripe
+
+    // const user = await User.findById(policyData.userId);
+    // if (!user) {
+    //   return NextResponse.json({ error: "User not found" }, { status: 404 });
+    // }
 
     // Create transaction policy
-    const policy = new TransactionPolicy(policyData);
-    await policy.save();
+    // const policy = new TransactionPolicy(policyData);
+    // await policy.save();
 
     // Process upfront payment if amount > 0
     if (policyData.upfrontAmount > 0) {
+      // const upfrontTransferAmount = Math.round(
+      //   policyData.upfrontAmount * 100 * 0.05
+      // );
+
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(policyData.upfrontAmount * 100), // Convert to cents
         currency: "aud",
-        customer: user.stripeCustomerId,
+        // customer: user.stripeCustomerId,
+        customer: policyData.userId,
         payment_method: policyData.paymentMethodId,
         confirm: true,
-        return_url: "https://your-domain.com/return",
+        return_url: "http://localhost:3000/payments",
+        // TODO: the following code snippet should transfer a fee to connected account
+        // transfer_data: {
+        //   destination: process.env.STRIPE_CONNECTED_ACCOUNT_ID as string,
+        //   amount: upfrontTransferAmount,
+        // },
       });
 
       // Create transaction record
-      const upfrontTransaction = new Transaction({
-        userId: policyData.userId,
-        policyId: policy._id,
-        amount: policyData.upfrontAmount,
-        type: "upfront",
-        status: paymentIntent.status === "succeeded" ? "succeeded" : "pending",
-        stripePaymentIntentId: paymentIntent.id,
-        processedAt: paymentIntent.status === "succeeded" ? new Date() : null,
-      });
-      await upfrontTransaction.save();
+      // const upfrontTransaction = new Transaction({
+      //   userId: policyData.userId,
+      //   policyId: policy._id,
+      //   amount: policyData.upfrontAmount,
+      //   type: "upfront",
+      //   status: paymentIntent.status === "succeeded" ? "succeeded" : "pending",
+      //   stripePaymentIntentId: paymentIntent.id,
+      //   processedAt: paymentIntent.status === "succeeded" ? new Date() : null,
+      // });
+      // await upfrontTransaction.save();
     }
 
     // Set up recurring payment subscription
@@ -78,7 +86,8 @@ export async function POST(request) {
       });
 
       const subscription = await stripe.subscriptions.create({
-        customer: user.stripeCustomerId,
+        // customer: user.stripeCustomerId,
+        customer: policyData.userId,
         items: [{ price: price.id }],
         // payment_behavior: "pending_if_incomplete",
         // items: [
@@ -104,11 +113,12 @@ export async function POST(request) {
       });
 
       // Update policy with subscription ID
-      policy.stripeSubscriptionId = subscription.id;
-      await policy.save();
+      // policy.stripeSubscriptionId = subscription.id;
+      // await policy.save();
     }
 
-    return NextResponse.json(policy, { status: 201 });
+    // return NextResponse.json(policy, { status: 201 });
+    return NextResponse.json(policyData, { status: 201 });
   } catch (error) {
     console.error("Policy creation error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });

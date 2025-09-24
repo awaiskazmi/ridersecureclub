@@ -3,12 +3,28 @@
 import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+
+import { useAppStore } from "@/stores/app";
+import { Plus } from "lucide-react";
+import { toast } from "react-toastify";
 
 export default function TransactionPolicyForm({
+  loading,
+  user,
   userId,
   onSubmit,
   initialData = null,
 }) {
+  console.log(user);
+
   const [formData, setFormData] = useState({
     name: initialData?.name || "",
     upfrontAmount: initialData?.upfrontAmount || 0,
@@ -16,12 +32,19 @@ export default function TransactionPolicyForm({
     frequency: initialData?.frequency || "month",
     recurringDate: initialData?.recurringDate || "",
     paymentMethodId: initialData?.paymentMethodId || "",
-    paymentMethodType: initialData?.paymentMethodType || "card",
+    // paymentMethodType: initialData?.paymentMethodType || "card",
     metadata: initialData?.metadata || {},
   });
 
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [metadataFields, setMetadataFields] = useState([]);
+  const [fetchPaymentMethodsLoading, setFetchPaymentMethodsLoading] =
+    useState(false);
+
+  const {
+    createUserPaymentMethodModalOpen,
+    setCreateUserPaymentMethodModalOpen,
+  } = useAppStore();
 
   useEffect(() => {
     // Convert metadata object to array for form handling
@@ -38,6 +61,11 @@ export default function TransactionPolicyForm({
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (!formData.paymentMethodId) {
+      toast.error("Please select a valid payment method!");
+      return;
+    }
 
     // Convert metadata array back to object
     const metadata = metadataFields.reduce((acc, field) => {
@@ -58,7 +86,7 @@ export default function TransactionPolicyForm({
     const { name, value, type } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "number" ? parseFloat(value) || 0 : value,
+      [name]: value,
     }));
   };
 
@@ -76,10 +104,47 @@ export default function TransactionPolicyForm({
     );
   };
 
+  const renderPaymentMethodOption = ({
+    type,
+    id,
+    ...rest
+  }: {
+    type: "card" | "au_becs_debit";
+    id: string;
+  }) => {
+    switch (type) {
+      case "au_becs_debit":
+        return `AU Bank account ending in ${rest.au_becs_debit.last4}`;
+      case "card":
+        return `${rest.card.display_brand.toUpperCase()} card ending in ${
+          rest.card.last4
+        }`;
+    }
+  };
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const getUserPaymentMethods = async () => {
+      try {
+        setFetchPaymentMethodsLoading(true);
+        const response = await fetch(`/api/users/${userId}/payment-methods`);
+        const data = await response.json();
+        setPaymentMethods(data);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setFetchPaymentMethodsLoading(false);
+      }
+    };
+
+    getUserPaymentMethods();
+  }, [userId, user]);
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium mb-1">Policy Name</label>
+        <label className="block text-sm font-medium mb-1">Invoice ID</label>
         <Input
           type="text"
           name="name"
@@ -98,8 +163,6 @@ export default function TransactionPolicyForm({
           name="upfrontAmount"
           value={formData.upfrontAmount}
           onChange={handleChange}
-          min="0"
-          step="0.01"
         />
       </div>
 
@@ -112,70 +175,118 @@ export default function TransactionPolicyForm({
           name="recurringAmount"
           value={formData.recurringAmount}
           onChange={handleChange}
-          min="0"
-          step="0.01"
-          required
         />
       </div>
 
-      <div>
-        <label className="block text-sm font-medium mb-1">Frequency</label>
-        <select
-          name="frequency"
+      {formData.recurringAmount > 0 ? (
+        <>
+          <div>
+            <label className="block text-sm font-medium mb-1">Frequency</label>
+
+            {/* <Select
           value={formData.frequency}
-          onChange={handleChange}
+          onValueChange={handleChange}
           required
         >
-          <option value="week">Week</option>
-          <option value="month">Month</option>
-          <option value="year">Year</option>
-        </select>
-      </div>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select a user..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {["week", "month", "year"].map((option) => (
+                <SelectItem key={option} value={option} className="capitalize">
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select> */}
 
-      {(formData.frequency === "month" || formData.frequency === "year") && (
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            {formData.frequency === "month"
-              ? "Day of Month (1-31)"
-              : "Day of Year (1-365)"}
-          </label>
-          <Input
-            type="number"
-            name="recurringDate"
-            value={formData.recurringDate}
-            onChange={handleChange}
-            min={formData.frequency === "month" ? 1 : 1}
-            max={formData.frequency === "month" ? 31 : 365}
-            required
-          />
-        </div>
-      )}
+            <select
+              name="frequency"
+              value={formData.frequency}
+              onChange={handleChange}
+              required
+            >
+              <option value="week">Week</option>
+              <option value="month">Month</option>
+              <option value="year">Year</option>
+            </select>
+          </div>
+
+          {(formData.frequency === "month" ||
+            formData.frequency === "year") && (
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                {formData.frequency === "month"
+                  ? "Day of Month (1-31)"
+                  : "Day of Year (1-365)"}
+              </label>
+              <Input
+                type="number"
+                name="recurringDate"
+                value={formData.recurringDate}
+                onChange={handleChange}
+                min={formData.frequency === "month" ? 1 : 1}
+                max={formData.frequency === "month" ? 31 : 365}
+                required
+              />
+            </div>
+          )}
+        </>
+      ) : null}
 
       <div>
-        <label className="block text-sm font-medium mb-1">
-          Payment Method ID
-        </label>
-        <Input
-          type="text"
+        <label className="block text-sm font-medium mb-1">Payment Method</label>
+
+        <Select
+          disabled={fetchPaymentMethodsLoading}
+          value={formData.paymentMethodId}
+          onValueChange={(value) => {
+            setFormData((prev) => ({
+              ...prev,
+              paymentMethodId: value,
+            }));
+          }}
+          required
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Please select..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {paymentMethods.length
+                ? paymentMethods.map((option) => (
+                    <SelectItem key={option.id} value={option.id}>
+                      {renderPaymentMethodOption(option)}
+                    </SelectItem>
+                  ))
+                : null}
+            </SelectGroup>
+            <Button
+              variant={"ghost"}
+              size={"lg"}
+              className="w-full"
+              onClick={() => setCreateUserPaymentMethodModalOpen(true)}
+            >
+              <Plus /> Add new payment method
+            </Button>
+          </SelectContent>
+        </Select>
+
+        {/* <select
           name="paymentMethodId"
           value={formData.paymentMethodId}
           onChange={handleChange}
-          placeholder="pm_xxxxxxxxxx"
           required
-        />
-        <p className="text-xs text-gray-600 mt-1">
-          Use the payment method setup form to get this ID.
-        </p>
-        <p className="text-xs text-gray-600 mt-1">
-          This should list all the existing payment methods of a customer.
-        </p>
-        <p className="text-xs text-gray-600 mt-1">
-          If no payment method exists, add Dialog to add payment method from
-          right here.
-        </p>
+        >
+          <option value="">Please select...</option>
+          {paymentMethods &&
+            paymentMethods.map((p) => renderPaymentMethodOption(p))}
+        </select> */}
       </div>
 
-      <div>
+      {/* <div>
         <label className="block text-sm font-medium mb-1">
           Payment Method Type
         </label>
@@ -187,9 +298,9 @@ export default function TransactionPolicyForm({
           <option value="card">Credit/Debit Card</option>
           <option value="bank_account">Bank Account</option>
         </select>
-      </div>
+      </div> */}
 
-      <div>
+      {/* <div>
         <label className="block text-sm font-medium mb-1">Metadata</label>
         {metadataFields.map((field, index) => (
           <div key={index} className="flex gap-2 mb-2">
@@ -223,10 +334,14 @@ export default function TransactionPolicyForm({
         <Button type="button" onClick={addMetadataField} variant={"secondary"}>
           Add Metadata Field
         </Button>
-      </div>
+      </div> */}
 
-      <Button type="submit">
-        {initialData ? "Update Policy" : "Create Policy"}
+      <Button type="submit" disabled={loading}>
+        {initialData
+          ? "Update Payment"
+          : loading
+          ? "Processing..."
+          : "Process Payment"}
       </Button>
     </form>
   );

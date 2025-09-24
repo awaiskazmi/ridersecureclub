@@ -41,11 +41,11 @@ const TransactionPolicySchema = new mongoose.Schema({
     type: String,
     required: true, // Stripe payment method ID
   },
-  paymentMethodType: {
-    type: String,
-    enum: ["card", "bank_account"],
-    required: true,
-  },
+  // paymentMethodType: {
+  //   type: String,
+  //   enum: ["card", "bank_account"],
+  //   required: true,
+  // },
   stripeSubscriptionId: String, // For recurring payments
   isActive: {
     type: Boolean,

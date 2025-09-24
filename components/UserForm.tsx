@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import Spinner from "./ui/spinner";
 
-export default function UserForm({ onSubmit, initialData = null }) {
+export default function UserForm({ onSubmit, loading, initialData = null }) {
   const [formData, setFormData] = useState({
     name: initialData?.name || "",
     email: initialData?.email || "",
@@ -14,7 +15,7 @@ export default function UserForm({ onSubmit, initialData = null }) {
       city: initialData?.address?.city || "",
       state: initialData?.address?.state || "",
       zipCode: initialData?.address?.zipCode || "",
-      country: initialData?.address?.country || "US",
+      country: initialData?.address?.country || "AU",
     },
   });
 
@@ -118,12 +119,18 @@ export default function UserForm({ onSubmit, initialData = null }) {
             placeholder="Country"
             value={formData.address.country}
             onChange={handleChange}
+            readOnly
           />
         </div>
       </div>
 
-      <Button type="submit">
-        {initialData ? "Update User" : "Create User"}
+      <Button type="submit" disabled={loading}>
+        {loading ? <Spinner /> : null}
+        {initialData
+          ? "Update user"
+          : loading
+          ? "Creating user..."
+          : "Create user"}
       </Button>
     </form>
   );

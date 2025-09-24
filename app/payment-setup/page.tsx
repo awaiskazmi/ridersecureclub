@@ -1,5 +1,7 @@
 "use client";
 
+import { Combobox } from "@/components/ui/combobox";
+import { APP } from "@/enums/app";
 import { Elements } from "@stripe/react-stripe-js";
 import { useEffect, useState } from "react";
 import PaymentMethodForm from "../../components/PaymentMethodForm";
@@ -72,6 +74,13 @@ export default function PaymentSetupPage() {
     alert("Payment method added successfully!");
   };
 
+  const handleUserSelect = (value: any) => {
+    if (value === APP.NewUser) {
+      return;
+    }
+    setSelectedUserId(value.value);
+  };
+
   return (
     <div>
       <h1 className="text-3xl font-bold mb-6">Payment Method Setup</h1>
@@ -80,20 +89,15 @@ export default function PaymentSetupPage() {
         <h2 className="text-xl font-bold mb-4">Add Payment Method</h2>
 
         <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Select User</label>
-          <select
-            value={selectedUserId}
-            onChange={(e) => setSelectedUserId(e.target.value)}
-            className="w-full p-2 border rounded"
-            required
-          >
-            <option value="">Select a user...</option>
-            {users.map((user) => (
-              <option key={user._id} value={user._id}>
-                {user.name} ({user.email})
-              </option>
-            ))}
-          </select>
+          <div className="inline-block">
+            <Combobox
+              onValueChange={handleUserSelect}
+              data={users.map((user) => ({
+                value: user.id,
+                label: `${user.name} (${user.email})`,
+              }))}
+            />
+          </div>
         </div>
 
         {selectedUserId && loadingClientSecret && (

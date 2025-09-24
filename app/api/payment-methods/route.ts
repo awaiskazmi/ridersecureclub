@@ -1,6 +1,5 @@
 import dbConnect from "@/lib/mongodb";
 import { stripe } from "@/lib/stripe";
-import User from "@/models/User";
 import { NextResponse } from "next/server";
 
 export async function POST(request) {
@@ -8,14 +7,15 @@ export async function POST(request) {
     await dbConnect();
     const { userId, paymentMethodId } = await request.json();
 
-    const user = await User.findById(userId);
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
+    // const user = await User.findById(userId);
+    // if (!user) {
+    //   return NextResponse.json({ error: "User not found" }, { status: 404 });
+    // }
 
     // Attach payment method to Stripe customer
     await stripe.paymentMethods.attach(paymentMethodId, {
-      customer: user.stripeCustomerId,
+      // customer: user.stripeCustomerId,
+      customer: userId,
     });
 
     // Get payment method details

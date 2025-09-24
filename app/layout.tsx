@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Sans } from "next/font/google";
+import { Manrope } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 
-import { Plus } from "lucide-react";
+import Car from "@/components/ui/car";
+import { ToastContainer } from "react-toastify";
 
-const ibmPlexSans = IBM_Plex_Sans({
+const ibmPlexSans = Manrope({
   variable: "--font-ibm-plex-sans",
   subsets: ["latin"],
 });
@@ -23,21 +24,17 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${ibmPlexSans.variable} antialiased`}>
-        <div className="min-h-screen bg-gray-200">
-          <nav className="bg-white shadow p-4 fixed top-0 left-0 right-0">
-            <h1 className="text-2xl font-bold">
-              <a href="/">Rider Secure Club</a>
+        <div className="min-h-screen bg-gray-100">
+          <nav className="bg-white shadow p-4 fixed top-0 left-0 right-0 z-50">
+            <h1 className="text-xl tracking-tight font-bold flex items-center justify-between">
+              <Link href="/" className="flex items-center gap-2">
+                <Car size={32} /> Rider Secure Club
+              </Link>
             </h1>
           </nav>
+          <ToastContainer position="bottom-right" pauseOnHover={false} />
           <main className="container mx-auto px-4 pb-4 pt-22">{children}</main>
         </div>
-        <Link
-          title="Create new payment"
-          href={"/policies"}
-          className="fixed bottom-10 right-10 size-12 bg-black text-white rounded-full flex items-center justify-center font-bold shadow-xl transition-all hover:scale-105 active:scale-95"
-        >
-          <Plus />
-        </Link>
       </body>
     </html>
   );

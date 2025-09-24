@@ -1,85 +1,109 @@
 "use client";
 
+import { Plus } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Button } from "./ui/button";
+import Spinner from "./ui/spinner";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./ui/table";
 
 export default function Dashboard() {
-  const [stats, setStats] = useState(null);
+  const [stats, setStats] = useState<{ stripe: Record<string, any>[] } | null>(
+    null
+  );
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [userTransactions, setUserTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchDashboardData();
+    fetchUsers();
   }, []);
 
-  const fetchDashboardData = async () => {
+  const fetchUsers = async () => {
     try {
-      const [statsRes, usersRes] = await Promise.all([
-        fetch("/api/dashboard/stats"),
-        fetch("/api/users"),
-      ]);
-
-      const statsData = await statsRes.json();
-      const usersData = await usersRes.json();
-
-      setStats(statsData);
-      setUsers(usersData);
+      const response = await fetch("/api/users");
+      const data = await response.json();
+      setUsers(data);
     } catch (error) {
-      console.error("Failed to fetch dashboard data:", error);
+      console.error("Failed to fetch users:", error);
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("/api/dashboard/stats");
+      const data = await response.json();
+      setStats(data);
+    } catch (error) {
+      console.error("Failed to fetch dashboard stats:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchUserTransactions = async (userId) => {
-    try {
-      const response = await fetch(`/api/transactions?userId=${userId}`);
-      const transactions = await response.json();
-      setUserTransactions(transactions);
-    } catch (error) {
-      console.error("Failed to fetch user transactions:", error);
-    }
-  };
+  // const fetchUserTransactions = async (userId) => {
+  //   try {
+  //     const response = await fetch(`/api/transactions?userId=${userId}`);
+  //     const transactions = await response.json();
+  //     setUserTransactions(transactions);
+  //   } catch (error) {
+  //     console.error("Failed to fetch user transactions:", error);
+  //   }
+  // };
 
-  const handleUserClick = (user) => {
-    setSelectedUser(user);
-    fetchUserTransactions(user._id);
-  };
-
-  if (loading) return <div>Loading dashboard...</div>;
+  // const handleUserClick = (user) => {
+  //   setSelectedUser(user);
+  //   fetchUserTransactions(user._id);
+  // };
 
   return (
     <div className="space-y-6">
       {/* Dashboard Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         <div className="bg-white p-4 rounded">
           <h3 className="text-lg font-medium">Total Customers</h3>
-          <p className="text-2xl font-bold">{stats?.totalCustomers || 0}</p>
+          <div className="text-2xl font-bold">
+            {users?.length || <Spinner />}
+          </div>
         </div>
 
-        <div className="bg-white p-4 rounded">
-          <h3 className="text-lg font-medium">Active Policies</h3>
+        {/* <div className="bg-white p-4 rounded">
+          <h3 className="text-lg font-medium">Active Payments</h3>
           <p className="text-2xl font-bold">{stats?.totalPolicies || 0}</p>
-        </div>
+        </div> */}
 
-        <div className="bg-white p-4 rounded">
+        <Link href="/payments">
+          <Button className="w-full h-full text-xl">
+            <Plus /> Create New Payment
+          </Button>
+        </Link>
+
+        {/* <div className="bg-white p-4 rounded">
           <h3 className="text-lg font-medium">Total Balance</h3>
           <p className="text-2xl font-bold">
             ${stats?.totalBalance?.toFixed(2) || "0.00"}
           </p>
-        </div>
+        </div> */}
 
-        <div className="bg-white p-4 rounded">
+        {/* <div className="bg-white p-4 rounded">
           <h3 className="text-lg font-medium">Successful Payments</h3>
           <p className="text-2xl font-bold">
             {stats?.transactionStats?.succeeded?.count || 0}
           </p>
-        </div>
+        </div> */}
       </div>
 
       {/* Users List */}
-      <div className="bg-white p-4 rounded">
+      {/* <div className="bg-white p-4 rounded">
         <h2 className="text-xl font-bold mb-4">Customers</h2>
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
@@ -116,10 +140,10 @@ export default function Dashboard() {
             </tbody>
           </table>
         </div>
-      </div>
+      </div> */}
 
       {/* Selected User Details */}
-      {selectedUser && (
+      {/* {selectedUser && (
         <div className="bg-white p-4 rounded border">
           <h2 className="text-xl font-bold mb-4">
             Transactions for {selectedUser.name}
@@ -166,31 +190,83 @@ export default function Dashboard() {
             </table>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Recent Transactions */}
-      <div className="bg-white p-4 rounded">
-        <h2 className="text-xl font-bold mb-4">Recent Transactions</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="border-b">
-                <th className="text-left p-2">Customer</th>
-                <th className="text-left p-2">Amount</th>
-                <th className="text-left p-2">Type</th>
-                <th className="text-left p-2">Status</th>
-                <th className="text-left p-2">Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stats?.recentTransactions?.map((transaction) => (
-                <tr key={transaction._id} className="border-b">
-                  <td className="p-2">
-                    {transaction.userId?.name || "Unknown"}
-                  </td>
-                  <td className="p-2">${transaction.amount.toFixed(2)}</td>
-                  <td className="p-2 capitalize">{transaction.type}</td>
-                  <td className="p-2">
+      {loading ? (
+        <div className="flex items-center gap-2">
+          <Spinner /> Fetching recent transactions...
+        </div>
+      ) : null}
+
+      {!loading && !stats?.stripe.length ? (
+        <Button onClick={() => fetchStats()}>Fetch recent transactions</Button>
+      ) : null}
+
+      {stats?.stripe.length ? (
+        <div className="bg-white p-4 rounded">
+          <h2 className="text-xl font-bold mb-4">Recent Transactions</h2>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="font-bold">Customer</TableHead>
+                  <TableHead className="font-bold">Amount (AUD)</TableHead>
+                  <TableHead className="font-bold">Phone</TableHead>
+                  <TableHead className="font-bold">Email</TableHead>
+                  <TableHead className="font-bold">Date</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {stats?.stripe?.map((transaction) => (
+                  <TableRow key={transaction.id}>
+                    <TableCell>
+                      {transaction.userDetails?.name || "Unknown"}
+                    </TableCell>
+                    <TableCell>${parseInt(transaction.amount) / 100}</TableCell>
+                    <TableCell>
+                      {transaction.userDetails?.phone || "-"}
+                    </TableCell>
+                    <TableCell>
+                      {transaction.userDetails?.email || "-"}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(
+                        transaction.available_on * 1000
+                      ).toLocaleDateString("en-GB", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+
+            <table className="hidden w-full border-collapse">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left p-2">Customer</th>
+                  <th className="text-left p-2">Amount (AUD)</th>
+                  <th className="text-left p-2">Type</th>
+                  {/* <th className="text-left p-2">Status</th> */}
+                  <th className="text-left p-2">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats?.stripe?.map((transaction) => (
+                  <tr key={transaction.id} className="border-b">
+                    <td className="p-2">
+                      {transaction.userDetails?.name || "Unknown"}
+                    </td>
+                    <td className="p-2">
+                      ${parseInt(transaction.amount) / 100}
+                    </td>
+                    <td className="p-2 capitalize">
+                      {transaction.transactionType}
+                    </td>
+                    {/* <td className="p-2">
                     <span
                       className={`px-2 py-1 rounded text-sm ${
                         transaction.status === "succeeded"
@@ -202,16 +278,23 @@ export default function Dashboard() {
                     >
                       {transaction.status}
                     </span>
-                  </td>
-                  <td className="p-2">
-                    {new Date(transaction.createdAt).toLocaleDateString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </td> */}
+                    <td className="p-2">
+                      {new Date(
+                        transaction.available_on * 1000
+                      ).toLocaleDateString("en-GB", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }

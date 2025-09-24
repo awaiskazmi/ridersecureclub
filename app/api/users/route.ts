@@ -6,8 +6,15 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET() {
   try {
     await dbConnect();
-    const users = await User.find({}).sort({ createdAt: -1 });
-    return NextResponse.json(users);
+
+    const users = await stripe.customers.list({
+      limit: 100,
+    });
+
+    return NextResponse.json(users.data);
+
+    // const users = await User.find({}).sort({ createdAt: -1 });
+    // return NextResponse.json(users);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
