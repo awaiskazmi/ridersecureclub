@@ -8,7 +8,7 @@ export async function GET() {
     await dbConnect();
 
     const users = await stripe.customers.list({
-      limit: 100,
+      limit: 2500,
     });
 
     return NextResponse.json(users.data);
