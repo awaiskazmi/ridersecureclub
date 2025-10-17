@@ -1,11 +1,12 @@
-import dbConnect from "@/lib/mongodb";
 import { stripe } from "@/lib/stripe";
-import User from "@/models/User";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET() {
   try {
+    /**
+     * SERVER ERROR 500: DISABLED FOR NOW
     await dbConnect();
+    */
 
     const users = await stripe.customers.list({
       limit: 2500,
@@ -22,7 +23,10 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    /**
+     * SERVER ERROR 500: DISABLED FOR NOW
     await dbConnect();
+    */
     const userData = await request.json();
 
     // Create Stripe customer
@@ -39,6 +43,8 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    /**
+     * SERVER ERROR 500: DISABLED FOR NOW
     // Create user in database
     const user = new User({
       ...userData,
@@ -46,6 +52,7 @@ export async function POST(request: NextRequest) {
     });
 
     await user.save();
+    */
     return NextResponse.json(user, { status: 201 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

@@ -100,7 +100,7 @@ export default function UsersPage() {
             </thead>
             <tbody>
               {users.map((user) => (
-                <tr key={user._id} className="border-b hover:bg-gray-50">
+                <tr key={user.id} className="border-b hover:bg-gray-50">
                   <td className="p-2">{user.name}</td>
                   <td className="p-2">{user.email}</td>
                   <td className="p-2">{user.phone || "N/A"}</td>

@@ -1,10 +1,12 @@
-import dbConnect from "@/lib/mongodb";
 import { stripe } from "@/lib/stripe";
 import { NextResponse } from "next/server";
 
 export async function POST(request) {
   try {
+    /**
+     * SERVER ERROR 500: DISABLED FOR NOW
     await dbConnect();
+    */
     const { userId, paymentMethodId } = await request.json();
 
     // const user = await User.findById(userId);

@@ -1,10 +1,10 @@
-import dbConnect from "@/lib/mongodb";
 import { stripe } from "@/lib/stripe";
-import TransactionPolicy from "@/models/TransactionPolicy";
 import { NextResponse } from "next/server";
 
 export async function GET(request) {
   try {
+    /**
+     * SERVER ERROR 500: DISABLED FOR NOW
     await dbConnect();
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("userId");
@@ -15,6 +15,8 @@ export async function GET(request) {
       .sort({ createdAt: -1 });
 
     return NextResponse.json(policies);
+    */
+    return NextResponse.json({ ok: true });
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
@@ -22,7 +24,10 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
+    /**
+     * SERVER ERROR 500: DISABLED FOR NOW
     await dbConnect();
+    */
     const policyData = await request.json();
 
     // Get user and validate
@@ -39,9 +44,12 @@ export async function POST(request) {
 
     // Process upfront payment if amount > 0
     if (policyData.upfrontAmount > 0) {
-      // const upfrontTransferAmount = Math.round(
-      //   policyData.upfrontAmount * 100 * 0.05
-      // );
+      /**
+         * STRIPE CONNECTED ACCOUNT FEE: DISABLED FOR NOW
+      const upfrontTransferAmount = Math.round(
+        policyData.upfrontAmount * 100 * 0.03
+      );
+      */
 
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(policyData.upfrontAmount * 100), // Convert to cents
@@ -51,11 +59,14 @@ export async function POST(request) {
         payment_method: policyData.paymentMethodId,
         confirm: true,
         return_url: "http://localhost:3000/payments",
-        // TODO: the following code snippet should transfer a fee to connected account
-        // transfer_data: {
-        //   destination: process.env.STRIPE_CONNECTED_ACCOUNT_ID as string,
-        //   amount: upfrontTransferAmount,
-        // },
+        /**
+         * STRIPE CONNECTED ACCOUNT FEE: DISABLED FOR NOW
+        application_fee_amount: upfrontTransferAmount,
+        transfer_data: {
+          destination: process.env.STRIPE_CONNECTED_ACCOUNT_ID as string,
+          // amount: upfrontTransferAmount,
+        },
+        */
       });
 
       // Create transaction record
@@ -76,6 +87,11 @@ export async function POST(request) {
       let interval = policyData.frequency;
       let intervalCount = 1;
 
+      const recurringDateObject = new Date(policyData.recurringDate);
+      const billingAnchorTimeStamp = Math.floor(
+        recurringDateObject.getTime() / 1000
+      );
+
       const price = await stripe.prices.create({
         currency: "aud",
         unit_amount: Math.round(policyData.recurringAmount * 100),
@@ -89,6 +105,7 @@ export async function POST(request) {
         // customer: user.stripeCustomerId,
         customer: policyData.userId,
         items: [{ price: price.id }],
+        billing_cycle_anchor: billingAnchorTimeStamp,
         // payment_behavior: "pending_if_incomplete",
         // items: [
         //   {
@@ -110,6 +127,14 @@ export async function POST(request) {
         // ],
         default_payment_method: policyData.paymentMethodId,
         expand: ["latest_invoice.payment_intent"],
+        /**
+         * STRIPE CONNECTED ACCOUNT FEE: DISABLED FOR NOW
+        
+        application_fee_percent: 3,
+        transfer_data: {
+          destination: process.env.STRIPE_CONNECTED_ACCOUNT_ID as string,
+        },
+        */
       });
 
       // Update policy with subscription ID

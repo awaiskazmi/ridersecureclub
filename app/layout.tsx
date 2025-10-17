@@ -32,7 +32,11 @@ export default function RootLayout({
               </Link>
             </h1>
           </nav>
-          <ToastContainer position="bottom-right" pauseOnHover={false} />
+          <ToastContainer
+            position="bottom-right"
+            className="font-sans"
+            pauseOnHover={false}
+          />
           <main className="container mx-auto px-4 pb-4 pt-22">{children}</main>
         </div>
       </body>

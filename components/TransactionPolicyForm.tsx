@@ -23,8 +23,6 @@ export default function TransactionPolicyForm({
   onSubmit,
   initialData = null,
 }) {
-  console.log(user);
-
   const [formData, setFormData] = useState({
     name: initialData?.name || "",
     upfrontAmount: initialData?.upfrontAmount || 0,
@@ -87,6 +85,13 @@ export default function TransactionPolicyForm({
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+    }));
+  };
+
+  const handleFrequencyChange = (value) => {
+    setFormData((prev) => ({
+      ...prev,
+      frequency: value,
     }));
   };
 
@@ -183,26 +188,30 @@ export default function TransactionPolicyForm({
           <div>
             <label className="block text-sm font-medium mb-1">Frequency</label>
 
-            {/* <Select
-          value={formData.frequency}
-          onValueChange={handleChange}
-          required
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select a user..." />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              {["week", "month", "year"].map((option) => (
-                <SelectItem key={option} value={option} className="capitalize">
-                  {option}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select> */}
+            <Select
+              name="frequency"
+              value={formData.frequency}
+              onValueChange={handleFrequencyChange}
+              required
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select a user..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {[
+                    { value: "week", label: "Week" },
+                    { value: "month", label: "Month" },
+                  ].map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
 
-            <select
+            {/* <select
               name="frequency"
               value={formData.frequency}
               onChange={handleChange}
@@ -210,25 +219,18 @@ export default function TransactionPolicyForm({
             >
               <option value="week">Week</option>
               <option value="month">Month</option>
-              <option value="year">Year</option>
-            </select>
+            </select> */}
           </div>
 
           {(formData.frequency === "month" ||
-            formData.frequency === "year") && (
+            formData.frequency === "week") && (
             <div>
-              <label className="block text-sm font-medium mb-1">
-                {formData.frequency === "month"
-                  ? "Day of Month (1-31)"
-                  : "Day of Year (1-365)"}
-              </label>
+              <label className="block text-sm font-medium mb-1">Date</label>
               <Input
-                type="number"
+                type="date"
                 name="recurringDate"
                 value={formData.recurringDate}
                 onChange={handleChange}
-                min={formData.frequency === "month" ? 1 : 1}
-                max={formData.frequency === "month" ? 31 : 365}
                 required
               />
             </div>

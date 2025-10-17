@@ -29,6 +29,7 @@ export default function PaymentsPage() {
   const router = useRouter();
 
   const {
+    loggedIn,
     createUserModalOpen,
     setCreateUserModalOpen,
     createUserPaymentMethodModalOpen,
@@ -48,6 +49,8 @@ export default function PaymentsPage() {
   } = useAppStore((state) => state);
 
   useEffect(() => {
+    if (!loggedIn) return router.replace("/");
+
     stripePromise.then((resolvedStripe) => {
       setStripe(resolvedStripe);
     });
@@ -100,6 +103,10 @@ export default function PaymentsPage() {
         body: JSON.stringify(paymentData),
       });
 
+      if (!response.ok) {
+        toast.error("Oops! Something went wrong. Try again.");
+      }
+
       if (response.ok) {
         setSelectedUserId("");
         // fetchPolicies();
@@ -108,7 +115,7 @@ export default function PaymentsPage() {
       }
     } catch (error) {
       console.error("Failed to create policy:", error);
-      toast.error("Oops! Something went wrong");
+      toast.error("Oops! Something went wrong. Try again.");
     } finally {
       setPaymentProcessingLoading(false);
     }
@@ -180,7 +187,9 @@ export default function PaymentsPage() {
     fetchUser(selectedUserId);
   };
 
-  return (
+  return !loggedIn ? (
+    <p>Verifying...</p>
+  ) : (
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Create New Payment</h1>

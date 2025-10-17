@@ -1,10 +1,13 @@
-import dbConnect from "@/lib/mongodb";
 import { stripe } from "@/lib/stripe";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest, { params }) {
   try {
+    /**
+     * SERVER ERROR 500: DISABLED FOR NOW
     await dbConnect();
+    */
+
     // const user = await User.findById(params.id);
     // if (!user) {
     //   return NextResponse.json({ error: "User not found" }, { status: 404 });
