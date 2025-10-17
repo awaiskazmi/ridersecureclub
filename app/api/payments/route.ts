@@ -106,6 +106,7 @@ export async function POST(request) {
         customer: policyData.userId,
         items: [{ price: price.id }],
         billing_cycle_anchor: billingAnchorTimeStamp,
+        proration_behavior: "none",
         // payment_behavior: "pending_if_incomplete",
         // items: [
         //   {
