@@ -164,6 +164,7 @@ export default function TransactionPolicyForm({
           Upfront Amount ($)
         </label>
         <Input
+          className="appearance-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
           type="number"
           name="upfrontAmount"
           value={formData.upfrontAmount}
@@ -176,6 +177,7 @@ export default function TransactionPolicyForm({
           Recurring Amount ($)
         </label>
         <Input
+          className="appearance-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
           type="number"
           name="recurringAmount"
           value={formData.recurringAmount}

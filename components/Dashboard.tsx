@@ -15,9 +15,7 @@ import {
 } from "./ui/table";
 
 export default function Dashboard() {
-  const [stats, setStats] = useState<{ stripe: Record<string, any>[] } | null>(
-    null
-  );
+  const [stats, setStats] = useState<Record<string, any>[] | null>(null);
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [userTransactions, setUserTransactions] = useState([]);
@@ -42,7 +40,10 @@ export default function Dashboard() {
       setLoading(true);
       const response = await fetch("/api/dashboard/stats");
       const data = await response.json();
-      setStats(data);
+      const stats = data.stripe.filter((t) => t.amount > 0);
+      setStats(stats);
+
+      console.log(stats);
     } catch (error) {
       console.error("Failed to fetch dashboard stats:", error);
     } finally {
@@ -195,15 +196,17 @@ export default function Dashboard() {
       {/* Recent Transactions */}
       {loading ? (
         <div className="flex items-center gap-2">
-          <Spinner /> Fetching recent transactions...
+          <Spinner /> Fetching transactions...
         </div>
       ) : null}
 
-      {!loading && !stats?.stripe.length ? (
-        <Button onClick={() => fetchStats()}>Fetch recent transactions</Button>
+      {!loading && !stats?.length ? (
+        <Button onClick={() => fetchStats()}>
+          Fetch last 100 transactions
+        </Button>
       ) : null}
 
-      {stats?.stripe.length ? (
+      {stats?.length ? (
         <div className="bg-white p-4 rounded">
           <h2 className="text-xl font-bold mb-4">Recent Transactions</h2>
           <div className="overflow-x-auto">
@@ -218,7 +221,7 @@ export default function Dashboard() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {stats?.stripe?.map((transaction) => (
+                {stats?.map((transaction) => (
                   <TableRow key={transaction.id}>
                     <TableCell>
                       {transaction.userDetails?.name || "Unknown"}
@@ -255,10 +258,10 @@ export default function Dashboard() {
                 </tr>
               </thead>
               <tbody>
-                {stats?.stripe?.map((transaction) => (
+                {stats?.map((transaction) => (
                   <tr key={transaction.id} className="border-b">
                     <td className="p-2">
-                      {transaction.userDetails?.name || "Unknown"}
+                      {transaction.userDetails?.name || "-"}
                     </td>
                     <td className="p-2">
                       ${parseInt(transaction.amount) / 100}
