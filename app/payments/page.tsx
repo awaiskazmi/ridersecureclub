@@ -272,10 +272,12 @@ export default function PaymentsPage() {
                   Add new payment method
                 </DialogTitle>
                 <DialogContent>
-                  <p>
-                    Add payment method for {selectedUser.name} (
-                    {selectedUser.email})
-                  </p>
+                  <div>
+                    <p className="text-xs font-bold mb-1">Add payment method</p>
+                    <p>
+                      {selectedUser.name} ({selectedUser.email})
+                    </p>
+                  </div>
                   <ScrollArea className="max-h-[85vh]">
                     {selectedUserId && stripeClientSecret && stripe && (
                       <Elements
