@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Manrope } from "next/font/google";
-import Link from "next/link";
 import "./globals.css";
 
-import Car from "@/components/ui/car";
+import Header from "@/components/common/Header";
+import { Headset, PhoneIcon, PinIcon } from "lucide-react";
 import { ToastContainer } from "react-toastify";
 
 const ibmPlexSans = Manrope({
@@ -24,21 +24,105 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${ibmPlexSans.variable} antialiased`}>
-        <div className="min-h-screen bg-gray-100">
-          <nav className="bg-white shadow p-4 fixed top-0 left-0 right-0 z-50">
-            <h1 className="text-xl tracking-tight font-bold flex items-center justify-between">
-              <Link href="/" className="flex items-center gap-2">
-                <Car size={32} /> Rider Secure Club
-              </Link>
-            </h1>
-          </nav>
+        <div className="overflow-clip">
+          <Header />
           <ToastContainer
             position="bottom-right"
             className="font-sans"
             pauseOnHover={false}
           />
-          <main className="container mx-auto px-4 pb-4 pt-22">{children}</main>
+          <main className="container mx-auto px-5 md:px-0 pb-4 pt-28 mb-28">
+            {children}
+          </main>
         </div>
+        <footer className="border-t bg-zinc-50">
+          <div className="container px-5 md:px-0 mx-auto">
+            <div className="py-20">
+              <div className="flex flex-col md:flex-row justify-between gap-10 md:gap-0">
+                <div className="flex flex-col gap-5 lg:w-6/12">
+                  <h1 className="text-2xl">Rider Secure Club</h1>
+                  <div className="flex flex-col gap-3 text-secondary-foreground text-sm">
+                    <p>
+                      Experience secure and reliable car rental services
+                      designed for comfort and peace of mind. Choose from a wide
+                      range of well-maintained vehicles for daily, weekly, or
+                      monthly rentals. Enjoy flexible plans, transparent
+                      pricing, and exceptional customer support every step of
+                      the way.
+                    </p>
+                    <p>Fully covered for accidents and unlimited kms.</p>
+                    <p>Call or visit us for pricing and quote.</p>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-5 lg:w-4/12">
+                  <div className="flex gap-3">
+                    <div className="h-10 w-10 flex items-center justify-center rounded-full bg-zinc-200">
+                      <PinIcon />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold">Address</p>
+                      <a
+                        className="hover:underline"
+                        href="https://maps.app.goo.gl/q3L1mvjaV65wXjRW9"
+                      >
+                        <p>2 Talbot Street</p>
+                        <p>St Peters NSW 2044, AU</p>
+                      </a>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="h-10 w-10 flex items-center justify-center rounded-full bg-zinc-200">
+                      <PhoneIcon />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold">Phone</p>
+                      <p>
+                        <a className="hover:underline" href="tel:+61421279744">
+                          +61 421 279 744
+                        </a>
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="h-10 w-10 flex items-center justify-center rounded-full bg-zinc-200">
+                      <Headset />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold">
+                        Customer support and queries
+                      </p>
+                      <p>
+                        <a
+                          className="hover:underline"
+                          href="mailto:ridesecure50@gmail.com"
+                        >
+                          ridesecure50@gmail.com
+                        </a>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <hr className="my-10" />
+              <div className="flex flex-col md:flex-row justify-between">
+                <p>
+                  Copyright &copy; {new Date().getFullYear()}. All rights
+                  reserved.
+                </p>
+                <p>
+                  Powered by{" "}
+                  <a
+                    className="font-semibold"
+                    target="_blank"
+                    href="https://www.dcodestudios.com/"
+                  >
+                    DCode Studios.
+                  </a>
+                </p>
+              </div>
+            </div>
+          </div>
+        </footer>
       </body>
     </html>
   );

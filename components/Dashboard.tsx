@@ -70,7 +70,7 @@ export default function Dashboard() {
     <div className="space-y-6">
       {/* Dashboard Stats */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white p-4 rounded">
+        <div className="bg-white p-4 rounded-md border">
           <h3 className="text-lg font-medium">Total Customers</h3>
           <div className="text-2xl font-bold">
             {users?.length || <Spinner />}
